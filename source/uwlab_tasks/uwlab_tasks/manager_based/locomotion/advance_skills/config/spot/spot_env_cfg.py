@@ -141,3 +141,8 @@ class ExtremeStairSpotEnvCfg(SpotEnvMixin, advance_skills_env.ExtremeStairEnvCon
 @configclass
 class SquarePillarObstacleSpotEnvCfg(SpotEnvMixin, advance_skills_env.SquarePillarObstacleEnvConfig):
     pass
+
+
+@configclass
+class IrregularPillarObstacleSpotEnvCfg(SpotEnvMixin, advance_skills_env.IrregularPillarObstacleEnvConfig):
+    pass

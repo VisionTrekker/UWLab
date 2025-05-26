@@ -124,7 +124,8 @@ class ObservationsCfg:
         last_actions = ObsTerm(func=mdp.last_action)
         height_scan = ObsTerm(
             func=mdp.height_scan,
-            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
+            params={"sensor_cfg": SceneEntityCfg("height_scanner"),
+                    "offset": 0.3},
             noise=Unoise(n_min=-0.1, n_max=0.1),
             clip=(-1.0, 1.0),
         )
@@ -155,7 +156,7 @@ class EventsCfg:
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="base"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="trunk"),
             "mass_distribution_params": (-5.0, 5.0),
             "operation": "add",
         },
@@ -166,7 +167,7 @@ class EventsCfg:
         func=mdp.apply_external_force_torque,
         mode="reset",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="base"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="trunk"),
             "force_range": (0.0, 0.0),
             "torque_range": (-0.0, 0.0),
         },
@@ -239,7 +240,7 @@ class RewardsCfg:
     illegal_contact_penalty = RewTerm(
         func=mdp.illegal_contact_penalty,
         weight=-3,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="trunk"), "threshold": 1.0},
     )
 
     # exploration eq. 3
@@ -263,7 +264,7 @@ class TerminationsCfg:
     base_contact = DoneTerm(
         func=mdp.illegal_contact,
         params={
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names="trunk"),
             "threshold": 1.0,
         },
     )
@@ -284,7 +285,7 @@ class AdvanceSkillsBaseEnvCfg(DataManagerBasedRLEnvCfg):
     terminations: TerminationsCfg = TerminationsCfg()
     events: EventsCfg = EventsCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
-    viewer: ViewerCfg = ViewerCfg(eye=(1.0, 2.0, 2.0), origin_type="asset_body", asset_name="robot", body_name="base")
+    viewer: ViewerCfg = ViewerCfg(eye=(1.0, 2.0, 2.0), origin_type="asset_body", asset_name="robot", body_name="trunk")
 
     def __post_init__(self):
         self.decimation = 4

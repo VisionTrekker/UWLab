@@ -116,8 +116,7 @@ class AlienGoEnvMixin:
         super().__post_init__()
         from uwlab_assets.robots.aliengo.aliengo_articulation import AliengoArticulation
         # overwrite as spot's body names for sensors
-        self.scene.robot = aliengo.ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot",
-                                                       class_type=AliengoArticulation)
+        self.scene.robot = aliengo.UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot", class_type=AliengoArticulation)
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/trunk"
         self.scene.height_scanner.offset.pos = (0.0, 0.0, 0.5)
         self.scene.height_scanner.pattern_cfg.resolution = 0.15

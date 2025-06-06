@@ -13,6 +13,7 @@
 """Launch Isaac Sim Simulator first."""
 
 import argparse
+import sys
 
 from isaaclab.app import AppLauncher
 
@@ -72,7 +73,48 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
-from scripts.reinforcement_learning.rsl_rl.train import process_agent_cfg
+def process_agent_cfg(env_cfg, agent_cfg):
+    if hasattr(agent_cfg.algorithm, "symmetry_cfg") and agent_cfg.algorithm.symmetry_cfg is None:
+        del agent_cfg.algorithm.symmetry_cfg
+
+    if hasattr(agent_cfg.algorithm, "behavior_cloning_cfg"):
+        if agent_cfg.algorithm.behavior_cloning_cfg is None:
+            del agent_cfg.algorithm.behavior_cloning_cfg
+        else:
+            bc_cfg = agent_cfg.algorithm.behavior_cloning_cfg
+            if bc_cfg.experts_observation_group_cfg is not None:
+                import importlib
+
+                # resolve path to the module location
+                mod_name, attr_name = bc_cfg.experts_observation_group_cfg.split(":")
+                mod = importlib.import_module(mod_name)
+                cfg_cls = mod
+                for attr in attr_name.split("."):
+                    cfg_cls = getattr(cfg_cls, attr)
+                cfg = cfg_cls()
+                setattr(env_cfg.observations, "expert_obs", cfg)
+
+    if hasattr(agent_cfg.algorithm, "offline_algorithm_cfg"):
+        if agent_cfg.algorithm.offline_algorithm_cfg is None:
+            del agent_cfg.algorithm.offline_algorithm_cfg
+        else:
+            if agent_cfg.algorithm.offline_algorithm_cfg.behavior_cloning_cfg is None:
+                del agent_cfg.algorithm.offline_algorithm_cfg.behavior_cloning_cfg
+            else:
+                bc_cfg = agent_cfg.algorithm.offline_algorithm_cfg.behavior_cloning_cfg
+                if bc_cfg.experts_observation_group_cfg is not None:
+                    import importlib
+
+                    # resolve path to the module location
+                    mod_name, attr_name = bc_cfg.experts_observation_group_cfg.split(":")
+                    mod = importlib.import_module(mod_name)
+                    cfg_cls = mod
+                    for attr in attr_name.split("."):
+                        cfg_cls = getattr(cfg_cls, attr)
+                    cfg = cfg_cls()
+                    setattr(env_cfg.observations, "expert_obs", cfg)
+    return agent_cfg
+
 
 def main():
     """Play with RSL-RL agent."""
@@ -132,10 +174,10 @@ def main():
     # export policy to onnx/jit
     export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
     export_policy_as_jit(
-        ppo_runner.alg.actor_critic, ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.pt"
+        ppo_runner.alg.policy, ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.pt"
     )
     export_policy_as_onnx(
-        ppo_runner.alg.actor_critic, normalizer=ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.onnx"
+        ppo_runner.alg.policy, normalizer=ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.onnx"
     )
 
     dt = env.unwrapped.physics_dt
